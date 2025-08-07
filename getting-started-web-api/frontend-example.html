@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Django SSO Example</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .login-buttons {
+            display: flex;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+        .btn-okta {
+            background-color: #00297A;
+            color: white;
+        }
+        .btn-google {
+            background-color: #4285F4;
+            color: white;
+        }
+        .btn-logout {
+            background-color: #dc3545;
+            color: white;
+        }
+        .user-info {
+            background-color: #e9ecef;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+        .hidden {
+            display: none;
+        }
+        .error {
+            color: #dc3545;
+            background-color: #f8d7da;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .success {
+            color: #155724;
+            background-color: #d4edda;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Django SSO Authentication Example</h1>
+        
+        <div id="login-section">
+            <h2>Login with SSO</h2>
+            <div class="login-buttons">
+                <button class="btn btn-okta" onclick="loginWithOkta()">Login with Okta</button>
+                <button class="btn btn-google" onclick="loginWithGoogle()">Login with Google</button>
+            </div>
+        </div>
+
+        <div id="user-section" class="hidden">
+            <h2>User Information</h2>
+            <div id="user-info" class="user-info">
+                <!-- User info will be displayed here -->
+            </div>
+            <button class="btn btn-logout" onclick="logout()">Logout</button>
+        </div>
+
+        <div id="messages"></div>
+    </div>
+
+    <script>
+        // Configuration - replace with your actual values
+        const API_BASE_URL = 'http://localhost:8000';
+        const OKTA_DOMAIN = 'your-okta-domain.okta.com';
+        const OKTA_CLIENT_ID = 'your-okta-client-id';
+        const GOOGLE_CLIENT_ID = 'your-google-client-id';
+
+        // Check if user is already logged in
+        window.onload = function() {
+            const token = localStorage.getItem('access_token');
+            if (token) {
+                getUserInfo();
+            }
+        };
+
+        function showMessage(message, type = 'success') {
+            const messagesDiv = document.getElementById('messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = type;
+            messageDiv.textContent = message;
+            messagesDiv.appendChild(messageDiv);
+            
+            setTimeout(() => {
+                messageDiv.remove();
+            }, 5000);
+        }
+
+        function loginWithOkta() {
+            // Initialize Okta Auth
+            const oktaAuth = new OktaAuth({
+                issuer: `https://${OKTA_DOMAIN}/oauth2/default`,
+                clientId: OKTA_CLIENT_ID,
+                redirectUri: window.location.origin + '/callback',
+                scopes: ['openid', 'profile', 'email']
+            });
+
+            // Start the login flow
+            oktaAuth.signInWithRedirect();
+        }
+
+        function loginWithGoogle() {
+            // Google OAuth2 configuration
+            const googleAuthUrl = 'https://accounts.google.com/o/oauth2/v2/auth';
+            const params = new URLSearchParams({
+                client_id: GOOGLE_CLIENT_ID,
+                redirect_uri: window.location.origin + '/callback',
+                response_type: 'id_token',
+                scope: 'openid email profile',
+                nonce: Math.random().toString(36).substring(2, 15)
+            });
+
+            // Store nonce for verification
+            localStorage.setItem('google_nonce', params.get('nonce'));
+            
+            // Redirect to Google
+            window.location.href = `${googleAuthUrl}?${params.toString()}`;
+        }
+
+        async function verifyToken(token, provider) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/polls/auth/verify-token/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        token: token,
+                        provider: provider
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    localStorage.setItem('access_token', data.access_token);
+                    showMessage('Login successful!');
+                    getUserInfo();
+                } else {
+                    showMessage(data.error || 'Authentication failed', 'error');
+                }
+            } catch (error) {
+                showMessage('Error during authentication: ' + error.message, 'error');
+            }
+        }
+
+        async function getUserInfo() {
+            const token = localStorage.getItem('access_token');
+            if (!token) return;
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/polls/auth/user-info/`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    displayUserInfo(data);
+                    document.getElementById('login-section').classList.add('hidden');
+                    document.getElementById('user-section').classList.remove('hidden');
+                } else {
+                    localStorage.removeItem('access_token');
+                    document.getElementById('login-section').classList.remove('hidden');
+                    document.getElementById('user-section').classList.add('hidden');
+                }
+            } catch (error) {
+                showMessage('Error fetching user info: ' + error.message, 'error');
+            }
+        }
+
+        function displayUserInfo(user) {
+            const userInfoDiv = document.getElementById('user-info');
+            userInfoDiv.innerHTML = `
+                <p><strong>ID:</strong> ${user.id}</p>
+                <p><strong>Username:</strong> ${user.username}</p>
+                <p><strong>Email:</strong> ${user.email}</p>
+                <p><strong>Name:</strong> ${user.first_name} ${user.last_name}</p>
+            `;
+        }
+
+        async function logout() {
+            const token = localStorage.getItem('access_token');
+            
+            try {
+                await fetch(`${API_BASE_URL}/polls/auth/logout/`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+            } catch (error) {
+                console.error('Logout error:', error);
+            }
+
+            localStorage.removeItem('access_token');
+            document.getElementById('login-section').classList.remove('hidden');
+            document.getElementById('user-section').classList.add('hidden');
+            showMessage('Logged out successfully');
+        }
+
+        // Handle callback from OAuth providers
+        function handleCallback() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const idToken = urlParams.get('id_token');
+            const error = urlParams.get('error');
+
+            if (error) {
+                showMessage('Authentication error: ' + error, 'error');
+                return;
+            }
+
+            if (idToken) {
+                // Determine provider based on the token or other parameters
+                const provider = urlParams.get('provider') || 'google'; // Default to Google
+                verifyToken(idToken, provider);
+            }
+        }
+
+        // Check if this is a callback
+        if (window.location.search.includes('id_token')) {
+            handleCallback();
+        }
+    </script>
+
+    <!-- Okta Auth SDK -->
+    <script src="https://global.oktacdn.com/okta-auth-js/5.8.0/okta-auth-js.min.js"></script>
+</body>
+</html> 
