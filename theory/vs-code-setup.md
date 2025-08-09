@@ -1,0 +1,10 @@
+- https://code.visualstudio.com/docs/python/tutorial-django
+- Extension 
+    - python (ms-python) & (anysphere)
+    - ensure python3 is installed 
+    - select python interpertor in vs-code 
+    - select ptyhon environment 
+        - this is required so that vs code imports all files 
+        - if pipenv or poetry, use respective environment
+- Add debugger config in task.json
+    - click on `run and debug` option and select django option 
