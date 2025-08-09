@@ -3,5 +3,5 @@
 - django-admin startproject myapp .
 - django-admin startapp core 
 - python manage.py migrate
-- python manage.py createsuperuser --username admin --email admin@example.com
+- python manage.py createsuperuser --username admin --email admin@example.com --password admin123
 - python manage.py runserver
