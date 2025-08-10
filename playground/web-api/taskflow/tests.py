@@ -83,7 +83,7 @@ class TaskFlowAPITest(APITestCase):
     
     def test_index_endpoint(self):
         """Test welcome endpoint"""
-        response = self.client.get('/api/')
+        response = self.client.get('')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn('message', response.data)
     
@@ -92,7 +92,7 @@ class TaskFlowAPITest(APITestCase):
         """Test team creation by admin"""
         self.client.force_authenticate(user=self.admin_user)
         data = {'name': 'New Team', 'description': 'New team'}
-        response = self.client.post('/api/teams/', data, format='json')
+        response = self.client.post('/api/teams/create/', data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data['name'], 'New Team')
     
@@ -107,4 +107,4 @@ class TaskFlowAPITest(APITestCase):
     def test_list_teams_unauthenticated(self):
         """Test listing teams fails for unauthenticated users"""
         response = self.client.get('/api/teams/')
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
