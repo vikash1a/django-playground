@@ -58,7 +58,8 @@ def index(request):
     }
 )
 @api_view(['POST'])
-@permission_classes([IsAuthenticated, IsAdminUser])
+@permission_classes([IsAuthenticated])
+@user_passes_test(lambda u: u.groups.filter(name='team-admin').exists())
 def create_team(request):
     name = request.data.get('name')
     description = request.data.get('description')
