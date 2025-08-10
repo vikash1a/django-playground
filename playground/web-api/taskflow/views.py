@@ -3,13 +3,30 @@ from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.models import User
 from .models import Team, Project, Task, Comment
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
-from rest_framework.permissions import IsAuthenticated, IsAdminUser, IsAuthenticatedOrReadOnly
+from rest_framework.permissions import BasePermission, IsAuthenticated, IsAdminUser, IsAuthenticatedOrReadOnly
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.response import Response
 from rest_framework import status
 from django.contrib.auth.decorators import login_required, user_passes_test
 from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiExample
 from drf_spectacular.types import OpenApiTypes
+
+# Custom permission classes for group-based access control
+class HasGroupPermission(BasePermission):
+    """
+    Custom permission class to check if user belongs to specific groups.
+    """
+    def __init__(self, allowed_groups):
+        self.allowed_groups = allowed_groups
+    
+    def has_permission(self, request, view):
+        if not request.user.is_authenticated:
+            return False
+        
+        # Check if user belongs to any of the allowed groups
+        user_groups = request.user.groups.values_list('name', flat=True)
+        return any(group in user_groups for group in self.allowed_groups)
+
 
 # Create your views here.
 @api_view(['GET'])
@@ -58,7 +75,7 @@ def index(request):
     }
 )
 @api_view(['POST'])
-@permission_classes([IsAuthenticated, IsAdminUser])
+@permission_classes([IsAuthenticated], HasGroupPermission(["admin","manager"]))
 def create_team(request):
     name = request.data.get('name')
     description = request.data.get('description')
@@ -113,95 +130,6 @@ def list_teams(request):
         })
     return Response(team_data)
 
-@extend_schema(
-    tags=['teams'],
-    summary="Get, update, or delete a team",
-    description="Retrieve, update, or delete a specific team. Only team admins can modify teams.",
-    parameters=[
-        OpenApiParameter(
-            name='team_id',
-            type=OpenApiTypes.INT,
-            location=OpenApiParameter.PATH,
-            description='ID of the team'
-        )
-    ],
-    request={
-        'application/json': {
-            'type': 'object',
-            'properties': {
-                'name': {'type': 'string', 'description': 'Team name'},
-                'description': {'type': 'string', 'description': 'Team description'}
-            }
-        }
-    },
-    responses={
-        200: {
-            'description': 'Team details retrieved successfully',
-            'type': 'object',
-            'properties': {
-                'id': {'type': 'integer'},
-                'name': {'type': 'string'},
-                'description': {'type': 'string'},
-                'members': {
-                    'type': 'array',
-                    'items': {
-                        'type': 'object',
-                        'properties': {
-                            'id': {'type': 'integer'},
-                            'username': {'type': 'string'}
-                        }
-                    }
-                },
-                'created_at': {'type': 'string', 'format': 'date-time'},
-                'updated_at': {'type': 'string', 'format': 'date-time'}
-            }
-        },
-        403: {'description': 'Forbidden - user is not a team admin'},
-        404: {'description': 'Team not found'}
-    }
-)
-@api_view(['GET', 'PUT', 'DELETE'])
-@permission_classes([IsAuthenticated])
-def team_detail(request, team_id):
-    team = get_object_or_404(Team, id=team_id)
-    
-    if request.method == 'GET':
-        return Response({
-            "id": team.id,
-            "name": team.name,
-            "description": team.description,
-            "members": [{"id": member.id, "username": member.username} for member in team.members.all()],
-            "created_at": team.created_at,
-            "updated_at": team.updated_at,
-        })
-    
-    elif request.method == 'PUT':
-        if not request.user.groups.filter(name='admin').exists():
-            return Response({"detail": "You do not have permission to perform this action."}, 
-                          status=status.HTTP_403_FORBIDDEN)
-        
-        name = request.data.get('name', team.name)
-        description = request.data.get('description', team.description)
-        
-        team.name = name
-        team.description = description
-        team.save()
-        
-        return Response({
-            "id": team.id,
-            "name": team.name,
-            "description": team.description,
-            "created_at": team.created_at,
-            "updated_at": team.updated_at,
-        })
-    
-    elif request.method == 'DELETE':
-        if not request.user.groups.filter(name='admin').exists():
-            return Response({"detail": "You do not have permission to perform this action."}, 
-                          status=status.HTTP_403_FORBIDDEN)
-        
-        team.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
 
 # Project views
 @extend_schema(
@@ -238,7 +166,7 @@ def team_detail(request, team_id):
     }
 )
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated], HasGroupPermission(["admin","manager"]))
 def create_project(request):
     name = request.data.get('name')
     description = request.data.get('description')
@@ -350,7 +278,7 @@ def list_projects(request):
     }
 )
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated], HasGroupPermission(["admin","manager"]))
 def create_task(request):
     title = request.data.get('title')
     description = request.data.get('description')

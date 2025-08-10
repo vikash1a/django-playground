@@ -32,7 +32,6 @@ urlpatterns = [
         # Team endpoints
         path('teams/', views.list_teams, name='list_teams'),
         path('teams/create/', views.create_team, name='create_team'),
-        path('teams/<int:team_id>/', views.team_detail, name='team_detail'),
         
         # Project endpoints
         path('projects/', views.list_projects, name='list_projects'),

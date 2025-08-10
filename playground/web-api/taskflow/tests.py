@@ -73,6 +73,14 @@ class TaskFlowAPITest(APITestCase):
             email='user@example.com',
             password='userpass123'
         )
+
+        # Create a manager 
+        self.manager_user = User.objects.create_user(
+            username='user-manager',
+            email='user-manager@example.com',
+            password='user-managerpass123',
+        )
+        self.manager_user.groups.add(Group.objects.create(name='manager'))
         
         # Create team
         self.team = Team.objects.create(

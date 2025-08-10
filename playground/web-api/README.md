@@ -13,6 +13,7 @@
   - python manage.py test taskflow
   - python manage.py test taskflow.tests.TaskFlowModelsTest
   - python manage.py test taskflow.tests.TaskFlowModelsTest.test_team_creation
+- or set up testing in vs code
 
 
 # Django API Project – Team Task Management
