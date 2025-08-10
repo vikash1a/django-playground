@@ -96,6 +96,13 @@ class TaskFlowAPITest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data['name'], 'New Team')
     
+    def test_create_team_unauthorized(self):
+        """Test team creation by regular user (not in team-admin group)"""
+        self.client.force_authenticate(user=self.user)
+        data = {'name': 'New Team', 'description': 'New team'}
+        response = self.client.post('/api/teams/create/', data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+    
     def test_list_teams_authenticated(self):
         """Test listing teams for authenticated users"""
         self.client.force_authenticate(user=self.user)
