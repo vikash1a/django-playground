@@ -16,7 +16,30 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import include, path
+from rest_framework import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    # Taskflow API endpoints
+    path('api/', include([
+        # Team endpoints
+        path('teams/', views.list_teams, name='list_teams'),
+        path('teams/create/', views.create_team, name='create_team'),
+        path('teams/<int:team_id>/', views.team_detail, name='team_detail'),
+        
+        # Project endpoints
+        path('projects/', views.list_projects, name='list_projects'),
+        path('projects/create/', views.create_project, name='create_project'),
+        
+        # Task endpoints
+        path('tasks/', views.list_tasks, name='list_tasks'),
+        path('tasks/create/', views.create_task, name='create_task'),
+        
+        # Comment endpoints
+        path('comments/create/', views.create_comment, name='create_comment'),
+        path('tasks/<int:task_id>/comments/', views.list_comments, name='list_comments'),
+    ])),
+    
+    # Root endpoint
+    path('', views.index, name='index'),
 ]

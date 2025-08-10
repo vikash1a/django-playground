@@ -3,6 +3,7 @@
 - pip install django
 - django-admin startproject myapp .
 - django-admin startapp core 
+- python manage.py makemigrations
 - python manage.py migrate
 - python manage.py createsuperuser --username admin --email admin@example.com --password admin123
 - python manage.py runserver
