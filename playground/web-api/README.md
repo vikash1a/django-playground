@@ -26,19 +26,6 @@ The API will allow teams to manage projects and tasks.
 
 ## 2. Entities / Data Models
 
-### User
-| Field       | Type           | Notes |
-|-------------|---------------|-------|
-| id          | UUID/Int      | Primary key |
-| username    | String        | Unique |
-| email       | String        | Unique |
-| password    | String        | Hashed |
-| first_name  | String        |  |
-| last_name   | String        |  |
-| role        | Enum (admin, manager, member) | Also stored as Django group |
-| date_joined | DateTime      | Auto |
-
----
 
 ### Team
 | Field       | Type           | Notes |
@@ -101,7 +88,7 @@ The API will allow teams to manage projects and tasks.
 - Token refresh endpoint (`/api/auth/refresh`)
 
 #### Authorization
-- Roles: `admin`, `manager`, `member` (via Django groups)
+- Groups: `admin`, `manager`, `member` (via Django groups)
 - Admin: full access
 - Manager: manage projects/tasks for their team
 - Member: manage only tasks assigned to them
