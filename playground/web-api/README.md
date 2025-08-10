@@ -8,6 +8,12 @@
 - python manage.py createsuperuser --username admin --email admin@example.com --password admin123
 - python manage.py runserver
 
+- Test
+  - python manage.py test
+  - python manage.py test taskflow
+  - python manage.py test taskflow.tests.TaskFlowModelsTest
+  - python manage.py test taskflow.tests.TaskFlowModelsTest.test_team_creation
+
 
 # Django API Project – Team Task Management
 
