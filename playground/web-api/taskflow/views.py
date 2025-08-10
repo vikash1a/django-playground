@@ -1,4 +1,3 @@
-from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.models import User
 from .models import Team, Project, Task, Comment
@@ -11,21 +10,25 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiExample
 from drf_spectacular.types import OpenApiTypes
 
-# Custom permission classes for group-based access control
 class HasGroupPermission(BasePermission):
-    """
-    Custom permission class to check if user belongs to specific groups.
-    """
-    def __init__(self, allowed_groups):
-        self.allowed_groups = allowed_groups
-    
+    allowed_groups = []
+
     def has_permission(self, request, view):
         if not request.user.is_authenticated:
             return False
-        
-        # Check if user belongs to any of the allowed groups
+
         user_groups = request.user.groups.values_list('name', flat=True)
         return any(group in user_groups for group in self.allowed_groups)
+
+class IsAdmin(HasGroupPermission):
+    allowed_groups = ["admin"]
+
+class IsManager(HasGroupPermission):
+    allowed_groups = ["manager"]
+
+class IsAdminOrManager(HasGroupPermission):
+    allowed_groups = ["admin", "manager"]
+
 
 
 # Create your views here.
@@ -75,7 +78,7 @@ def index(request):
     }
 )
 @api_view(['POST'])
-@permission_classes([IsAuthenticated], HasGroupPermission(["admin","manager"]))
+@permission_classes([IsAuthenticated, IsAdminOrManager])
 def create_team(request):
     name = request.data.get('name')
     description = request.data.get('description')
@@ -166,7 +169,7 @@ def list_teams(request):
     }
 )
 @api_view(['POST'])
-@permission_classes([IsAuthenticated], HasGroupPermission(["admin","manager"]))
+@permission_classes([IsAuthenticated, IsAdminOrManager])
 def create_project(request):
     name = request.data.get('name')
     description = request.data.get('description')
@@ -278,12 +281,12 @@ def list_projects(request):
     }
 )
 @api_view(['POST'])
-@permission_classes([IsAuthenticated], HasGroupPermission(["admin","manager"]))
+@permission_classes([IsAuthenticated, IsAdminOrManager])
 def create_task(request):
     title = request.data.get('title')
     description = request.data.get('description')
     project_id = request.data.get('project_id')
-    status = request.data.get('status', 'pending')
+    status_task = request.data.get('status', 'pending')
     assignee_id = request.data.get('assignee_id')
     
     if not all([title, project_id]):
@@ -311,7 +314,7 @@ def create_task(request):
         title=title,
         description=description,
         project=project,
-        status=status,
+        status=status_task,
         assignee=assignee
     )
     
