@@ -1,0 +1,39 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Debug Tests",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/venv/bin/pytest",
+            "args": [
+                "${file}",
+                "-v",
+                "--tb=long"
+            ],
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "DJANGO_SETTINGS_MODULE": "myapp.settings"
+            },
+            "justMyCode": false
+        },
+        {
+            "name": "Python: Debug Current Test File",
+            "type": "python",
+            "request": "launch",
+            "module": "pytest",
+            "args": [
+                "${file}",
+                "-v",
+                "--tb=long"
+            ],
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "DJANGO_SETTINGS_MODULE": "myapp.settings"
+            ],
+            "justMyCode": false
+        }
+    ]
+} 

@@ -1,0 +1,85 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Run All Tests",
+            "type": "shell",
+            "command": "./venv/bin/pytest",
+            "args": [
+                ".",
+                "-v",
+                "--tb=short"
+            ],
+            "group": "test",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "env": {
+                "DJANGO_SETTINGS_MODULE": "myapp.settings"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Run Current Test File",
+            "type": "shell",
+            "command": "./venv/bin/pytest",
+            "args": [
+                "${file}",
+                "-v",
+                "--tb=short"
+            ],
+            "group": "test",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "env": {
+                "DJANGO_SETTINGS_MODULE": "myapp.settings"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Run Tests with Coverage",
+            "type": "shell",
+            "command": "./venv/bin/pytest",
+            "args": [
+                ".",
+                "--cov=taskflow",
+                "--cov-report=html",
+                "--cov-report=term-missing",
+                "-v"
+            ],
+            "group": "test",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "env": {
+                "DJANGO_SETTINGS_MODULE": "myapp.settings"
+            },
+            "problemMatcher": []
+        }
+    ]
+} 

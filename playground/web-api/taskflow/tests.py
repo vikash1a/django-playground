@@ -2,9 +2,11 @@ from django.test import TestCase
 from django.contrib.auth.models import User, Group
 from rest_framework.test import APITestCase, APIClient
 from rest_framework import status
+import pytest
 from .models import Team, Project, Task
 
 
+@pytest.mark.unit
 class TaskFlowModelsTest(TestCase):
     """Basic model tests"""
     
@@ -31,6 +33,7 @@ class TaskFlowModelsTest(TestCase):
             assignee=self.user
         )
     
+    @pytest.mark.slow
     def test_team_creation(self):
         """Test team creation"""
         self.assertEqual(self.team.name, 'Test Team')
@@ -47,6 +50,7 @@ class TaskFlowModelsTest(TestCase):
         self.assertEqual(self.task.assignee, self.user)
 
 
+@pytest.mark.integration
 class TaskFlowAPITest(APITestCase):
     """Basic API tests"""
     
@@ -83,6 +87,7 @@ class TaskFlowAPITest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn('message', response.data)
     
+    @pytest.mark.slow
     def test_create_team_success(self):
         """Test team creation by admin"""
         self.client.force_authenticate(user=self.admin_user)
