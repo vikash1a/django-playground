@@ -1,5 +1,6 @@
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
+from django.contrib.auth.models import User
 from .models import Team, Project, Task, Comment
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.permissions import IsAuthenticated, IsAdminUser, IsAuthenticatedOrReadOnly
@@ -11,8 +12,19 @@ from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiExampl
 from drf_spectacular.types import OpenApiTypes
 
 # Create your views here.
-def index():
-    return HttpResponse("Hello, world. You're at the taskflow index.")
+@api_view(['GET'])
+@permission_classes([])  # Allow anonymous access
+def index(request):
+    return Response({
+        "message": "Welcome to TaskFlow API",
+        "endpoints": {
+            "admin": "/admin/",
+            "api_docs": "/api/docs/",
+            "teams": "/api/teams/",
+            "projects": "/api/projects/",
+            "tasks": "/api/tasks/"
+        }
+    })
 
 # Team views
 @extend_schema(
