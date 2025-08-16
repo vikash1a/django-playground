@@ -2,27 +2,38 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python: Django Tests",
+            "name": "Python: Debug Tests",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}/manage.py",
+            "program": "${workspaceFolder}/venv/bin/pytest",
             "args": [
-                "test"
+                "${file}",
+                "-v",
+                "--tb=long"
             ],
-            "django": true,
             "console": "integratedTerminal",
-            "cwd": "${workspaceFolder}"
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "DJANGO_SETTINGS_MODULE": "myapp.settings"
+            },
+            "justMyCode": false
         },
         {
-            "name": "Python: Pytest",
+            "name": "Python: Debug Current Test File",
             "type": "python",
             "request": "launch",
             "module": "pytest",
             "args": [
-                "-v"
+                "${file}",
+                "-v",
+                "--tb=long"
             ],
             "console": "integratedTerminal",
-            "cwd": "${workspaceFolder}"
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "DJANGO_SETTINGS_MODULE": "myapp.settings"
+            ],
+            "justMyCode": false
         }
     ]
 } 
